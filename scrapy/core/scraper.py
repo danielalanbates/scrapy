@@ -3,6 +3,7 @@ extracts information from them"""
 
 from __future__ import annotations
 
+import asyncio
 import logging
 import warnings
 from collections import deque
@@ -94,7 +95,7 @@ class Slot:
             self.active_size -= self.MIN_RESPONSE_SIZE
 
     def is_idle(self) -> bool:
-        return not (self.queue or self.active)
+        return not (self.queue or self.active or self.itemproc_size > 0)
 
     def needs_backout(self) -> bool:
         return self.active_size > self.max_active_size
@@ -123,6 +124,7 @@ class Scraper:
         self.signals: SignalManager = crawler.signals
         assert crawler.logformatter
         self.logformatter: LogFormatter = crawler.logformatter
+        self._start_pipeline_tasks: set[asyncio.Task[None]] = set()
 
     def _check_deprecated_itemproc_method(self, method: str) -> None:
         itemproc_cls = type(self.itemproc)
