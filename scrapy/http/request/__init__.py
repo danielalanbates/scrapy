@@ -19,6 +19,8 @@ from typing import (
     overload,
 )
 
+from urllib.parse import urlparse, urlunparse
+
 from w3lib.url import safe_url_string
 
 # a workaround for the docs "more than one target found" problem
@@ -229,6 +231,14 @@ class Request(object_ref):
             raise TypeError(f"Request url must be str, got {type(url).__name__}")
 
         self._url = safe_url_string(url, self.encoding)
+
+        # Add "/" path if missing (e.g., http://example.com?query=value -> http://example.com/?query=value)
+        # This ensures valid HTTP request lines with proper path component
+        parsed = urlparse(self._url)
+        if not parsed.path and (parsed.query or parsed.fragment):
+            self._url = urlunparse(
+                (parsed.scheme, parsed.netloc, "/", parsed.params, parsed.query, parsed.fragment)
+            )
 
         if (
             "://" not in self._url
