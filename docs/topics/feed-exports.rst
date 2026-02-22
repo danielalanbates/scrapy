@@ -143,6 +143,23 @@ Here are some examples to illustrate:
 .. note:: :ref:`Spider arguments <spiderargs>` become spider attributes, hence
           they can also be used as storage URI parameters.
 
+.. caution:: Storage URI parameters are not supported when using
+   :class:`pathlib.Path` objects as feed URIs. You must use string URIs
+   when you want to use Storage URI parameters. For example::
+
+       # This will NOT work:
+       FEEDS = {
+           pathlib.Path("./%(time)s.csv"): {...}  # ❌ Error!
+       }
+
+       # Use a string instead:
+       FEEDS = {
+           "./%(time)s.csv": {...}  # ✓ Correct
+       }
+
+   Use :class:`pathlib.Path` objects only for static paths without
+   parameters.
+
 
 .. _topics-feed-storage-backends:
 
@@ -162,7 +179,13 @@ The feeds are stored in the local filesystem.
 
 Note that for the local filesystem storage (only) you can omit the scheme if
 you specify an absolute path like ``/tmp/export.csv`` (Unix systems only).
-Alternatively you can also use a :class:`pathlib.Path` object.
+Alternatively you can also use a :class:`pathlib.Path` object for static
+paths without :ref:`Storage URI parameters <topics-feed-uri-params>`.
+
+.. caution:: :class:`pathlib.Path` objects cannot be used with
+   :ref:`Storage URI parameters <topics-feed-uri-params>` (such as
+   ``%(time)s`` or ``%(name)s``). Use string URIs instead when you need
+   dynamic path generation.
 
 .. _topics-feed-storage-ftp:
 
@@ -436,6 +459,11 @@ parameters for the specific feed.
 This setting is required for enabling the feed export feature.
 
 See :ref:`topics-feed-storage-backends` for supported URI schemes.
+
+.. note:: :class:`pathlib.Path` objects are supported only for static paths.
+   They cannot be used with :ref:`Storage URI parameters
+   <topics-feed-uri-params>` such as ``%(time)s`` or ``%(name)s``. Use
+   string URIs instead when you need to use Storage URI parameters.
 
 For instance::
 
